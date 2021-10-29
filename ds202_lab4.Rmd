@@ -1,0 +1,91 @@
+---
+title: "ds202_lab4"
+author: "Shiv Patel"
+date: "10/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(classdata)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+```
+```{r}
+defense <- read_excel('cyclonesFootball2020.xlsx', sheet='Defensive')
+defense
+offense <- read_excel('cyclonesFootball2020.xlsx', sheet='Offensive')
+offense
+bio <- read_excel('cyclonesFootball2020.xlsx', sheet='Biography')
+bio
+```
+Part 1:
+
+1. 
+```{r}
+defense$Name <- defense$Name %>% factor()
+defense$Opponent_Opponent <- defense$Opponent_Opponent %>% factor()
+offense$Name <- offense$Name %>% factor()
+offense$Opponent_Opponent <- offense$Opponent_Opponent %>% factor()
+bio$Name <- bio$Name %>% factor()
+str(defense)
+str(offense)
+str(bio)
+```
+2. 
+```{r}
+defense <- defense %>% mutate_if(is.character, as.numeric)
+offense <- offense %>% mutate_if(is.character, as.numeric)
+bio$Weight <- bio$Weight %>% as.numeric()
+str(defense)
+str(offense)
+str(bio)
+```
+3. 
+```{r}
+bio <- bio %>% separate("Height", c("feet", "inches"), sep = "-") 
+str(bio)
+bio$feet <- bio$feet %>% as.numeric()
+bio$inches <- bio$inches %>% as.numeric()
+bio <- bio %>% mutate(Height = 12*feet + inches)
+str(bio)
+```
+
+4. 
+```{r}
+defense %>% group_by(Name) %>% mutate(game = duplicated(Opponent_Opponent))
+offense %>% group_by(Name) %>% mutate(game = duplicated(Opponent_Opponent))
+```
+
+```{r}
+defClean <- defense
+offClean <- offense
+bioClean <- bio
+```
+
+Part 2:
+1. 
+```{r}
+offClean <- offClean %>% pivot_longer(Receiving_REC:Passing_INT, names_to = 'stat', values_to = 'value')
+offClean
+```
+2. 
+
+```{r}
+offClean <- offClean %>% drop_na()
+offClean <- offClean %>% group_by(Name, Opponent_Opponent) %>% summarize(total = sum(value))
+offClean
+```
+3. 
+```{r}
+offClean %>% ggplot(aes(Opponent_Opponent, total)) + geom_point() + facet_wrap(~Name)
+```
+Most of the players have very low totals across all the teams with the exception of Brock Purdy and Breece Hall. We can tell that Prudy and Hall are contributing the most out of the team. The pattern for the curve is very similar across all games for each player as well. The fifth opponent appears to have been a highlight for many players on the team as they have the highest totals during that game. 
+
+
+
